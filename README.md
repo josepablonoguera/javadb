@@ -56,6 +56,8 @@ db.user=root
 db.password=1234
 ```
 
+La clase `ConexionBD` primero busca `db.properties` en el classpath y, si no está disponible (por ejemplo, ciertas ejecuciones directas desde IDE), hace fallback a `resources/db.properties` o `./db.properties`.
+
 ## Crear base de datos
 
 Ejecuta el script `resources/schema.sql` en MySQL:

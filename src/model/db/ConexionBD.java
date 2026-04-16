@@ -2,6 +2,9 @@ package model.db;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -32,15 +35,35 @@ public class ConexionBD {
     private Properties cargarPropiedades() {
         Properties properties = new Properties();
 
-        try (InputStream input = getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE)) {
-            if (input == null) {
-                throw new IllegalStateException("No se encontró el archivo " + PROPERTIES_FILE + " en resources/");
-            }
+        try (InputStream input = abrirArchivoConfiguracion()) {
             properties.load(input);
         } catch (IOException e) {
             throw new IllegalStateException("Error al cargar la configuración de base de datos.", e);
         }
 
         return properties;
+    }
+
+    private InputStream abrirArchivoConfiguracion() throws IOException {
+        InputStream classpathStream = getClass().getClassLoader().getResourceAsStream(PROPERTIES_FILE);
+        if (classpathStream != null) {
+            return classpathStream;
+        }
+
+        Path[] candidatos = {
+            Paths.get("resources", PROPERTIES_FILE),
+            Paths.get(PROPERTIES_FILE)
+        };
+
+        for (Path candidato : candidatos) {
+            if (Files.exists(candidato)) {
+                return Files.newInputStream(candidato);
+            }
+        }
+
+        throw new IllegalStateException(
+                "No se encontró " + PROPERTIES_FILE
+                + " ni en el classpath ni en rutas locales: resources/" + PROPERTIES_FILE + " o ./" + PROPERTIES_FILE
+        );
     }
 }
